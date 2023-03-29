@@ -273,6 +273,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         generateDatabase();
         sendWork();
+        inputAR.setText("");
+        inputCAN.setText("");
     }
 
     private void sendWork() {

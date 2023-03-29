@@ -35,7 +35,7 @@ android {
         debug {
             signingConfig signingConfigs.debug
 //            buildConfigField "String", "ENV_URL", '"http://10.10.10.155:5000/"'
-            buildConfigField "String", "ENV_URL", '"http://54.249.25.181:5000/"'
+            buildConfigField "String", "ENV_URL", '"http://54.249.25.181/"'
         }
         release {
             buildConfigField "String", "ENV_URL", '"http:/54.249.25.181/"'

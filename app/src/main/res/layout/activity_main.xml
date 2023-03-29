@@ -40,7 +40,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Code Remain: "
+                android:text="未送信コード数: "
                 android:textColor="#086799"
                 android:textSize="16sp" />
 
@@ -64,7 +64,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Image Remain: "
+                android:text="未送信画像数: "
                 android:textColor="#086799"
                 android:textSize="16sp" />
 
@@ -101,6 +101,7 @@
         android:autofillHints="Location code"
         android:background="@drawable/edit_text_bg"
         android:gravity="center_vertical"
+        android:imeOptions="actionDone"
         android:inputType="text"
         android:lines="1"
         android:maxLines="1"
@@ -134,6 +135,7 @@
         android:autofillHints="Location code"
         android:background="@drawable/edit_text_bg"
         android:gravity="center_vertical"
+        android:imeOptions="actionDone"
         android:inputType="text"
         android:lines="1"
         android:maxLines="1"
@@ -168,6 +170,7 @@
         android:background="@drawable/edit_text_bg"
         android:enabled="false"
         android:gravity="center_vertical"
+        android:imeOptions="actionDone"
         android:inputType="text"
         android:lines="1"
         android:maxLines="1"

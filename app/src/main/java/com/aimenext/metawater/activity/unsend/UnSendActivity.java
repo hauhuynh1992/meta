@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aimenext.metawater.R;
 import com.aimenext.metawater.RestAPI;
@@ -45,6 +46,11 @@ public class UnSendActivity extends AppCompatActivity {
         rvList = findViewById(R.id.rvUnSend);
         btnBack = findViewById(R.id.img_back);
         btnSend = findViewById(R.id.btn_send);
+        appDatabase = Room.databaseBuilder(this, AppDatabase.class, "mydb")
+                .allowMainThreadQueries()
+                .build();
+        dao = appDatabase.getItemDAO();
+
         btnSend.setOnClickListener(v -> {
             sendData();
         });
@@ -64,18 +70,15 @@ public class UnSendActivity extends AppCompatActivity {
     }
 
     private void generateDatabase() {
-        appDatabase = Room.databaseBuilder(this, AppDatabase.class, "mydb")
-                .allowMainThreadQueries()
-                .build();
         Observable.just(appDatabase)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.computation())
                 .subscribe(postResult -> {
-                    ItemDAO dao = appDatabase.getItemDAO();
                     List<Item> items = dao.getItems();
                     ArrayList jobs = new ArrayList<Job>();
                     if (items != null) {
                         for (int i = 0; i < items.size(); i++) {
+                            Log.d("AAAHAU", items.get(i).getId() + "/" + items.get(i).getImage() + "/" + items.get(i).getCode());
                             jobs.add(new Job(
                                     items.get(i).getId(),
                                     items.get(i).getImage(),
@@ -119,10 +122,21 @@ public class UnSendActivity extends AppCompatActivity {
         cryptoObservable.subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.computation())
                 .subscribe(postResult -> {
-                    Log.d("AAAHAU", "Success");
+                    Log.d("AAAHAU", "Success: " + id.toString());
                     dao.deleteJob(id);
+                    File fdelete = new File(path);
+                    if (fdelete.exists()) {
+                        if (fdelete.delete()) {
+                            Log.d("AAAHAU", "file Deleted :" + path);
+                        } else {
+                            Log.d("AAAHAU", "file not Deleted :" + path);
+                        }
+                    }
+                    Toast.makeText(this, "正常に送信できました", Toast.LENGTH_SHORT).show();
+                    finish();
                 }, throwable -> {
                     Log.d("AAAHAU", "error");
+                    finish();
                 });
     }
 }

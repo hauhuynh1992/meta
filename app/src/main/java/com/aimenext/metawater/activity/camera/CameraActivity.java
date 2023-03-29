@@ -244,11 +244,11 @@ public class CameraActivity extends AppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(postResult -> {
                     Log.i("AAAHAU", "Success");
-                    Toast.makeText(this, "Send success", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "正常に送信できました", Toast.LENGTH_SHORT).show();
                     finish();
                 }, throwable -> {
                     Log.i("AAAHAU", "error");
-                    Toast.makeText(this, "save database success", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "送信不可", Toast.LENGTH_SHORT).show();
                     AppDatabase appDatabase = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "mydb")
                             .allowMainThreadQueries()
                             .build();

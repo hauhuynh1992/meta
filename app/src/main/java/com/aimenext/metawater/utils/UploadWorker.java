@@ -69,10 +69,10 @@ public class UploadWorker extends Worker {
         cryptoObservable.subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.computation())
                 .subscribe(postResult -> {
-                    Log.i("AAAHAU", "Success");
+                    Log.i("AAAHAU", "Success do work");
                     dao.deleteJob(id);
                 }, throwable -> {
-                    Log.i("AAAHAU", "error");
+                    Log.i("AAAHAU", "error Success do work");
                 });
     }
 

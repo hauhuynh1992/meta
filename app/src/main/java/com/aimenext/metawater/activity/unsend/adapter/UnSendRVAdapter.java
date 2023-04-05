@@ -6,8 +6,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.aimenext.metawater.R;
 import com.aimenext.metawater.data.Job;
+import com.aimenext.metawater.utils.CountUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,10 +18,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import androidx.recyclerview.widget.RecyclerView;
-
 public class UnSendRVAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private ArrayList<Job> taskList;
+    private ArrayList<UnSendItem> listViews = new ArrayList<>();
 
     public UnSendRVAdapter() {
         this.taskList = new ArrayList<>();
@@ -51,19 +53,33 @@ public class UnSendRVAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         JobViewHoler viewHolder = (JobViewHoler) holder;
-        Job data = taskList.get(position);
+        UnSendItem data = listViews.get(position);
         viewHolder.txt_code.setText(data.getCanCode());
         viewHolder.txt_type.setText(data.getType());
+        viewHolder.txt_num_image.setText(data.getImageNum() + " 枚の画像");
         viewHolder.txt_date.setText(convertTimeLongToString(data.getDate()));
     }
 
     @Override
     public int getItemCount() {
-        return taskList.size();
+        return listViews.size();
     }
 
     public void setJobs(ArrayList<Job> mJobs) {
         this.taskList.addAll(mJobs);
+        ArrayList<Job> filter = CountUtils.removeDuplicate(this.taskList);
+        for (int i = 0; i < filter.size(); i++) {
+            int num = CountUtils.getDuplicateCode(filter.get(i).getCanCode(), taskList);
+            listViews.add(new UnSendItem(
+                    filter.get(i).getId(),
+                    num,
+                    filter.get(i).getCanCode(),
+                    filter.get(i).getType(),
+                    filter.get(i).getUnique(),
+                    filter.get(i).getDate()
+
+            ));
+        }
         notifyDataSetChanged();
     }
 

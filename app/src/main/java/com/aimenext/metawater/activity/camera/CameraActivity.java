@@ -13,9 +13,16 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.room.Room;
 
 import com.aimenext.metawater.R;
 import com.aimenext.metawater.RestAPI;
@@ -24,7 +31,7 @@ import com.aimenext.metawater.data.Response;
 import com.aimenext.metawater.data.local.dao.ItemDAO;
 import com.aimenext.metawater.data.local.db.AppDatabase;
 import com.aimenext.metawater.data.local.entity.Item;
-import com.aimenext.metawater.utils.UploadWorker;
+import com.aimenext.metawater.utils.DialogHandler;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.common.util.Hex;
 
@@ -36,18 +43,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.room.Room;
-import androidx.work.Constraints;
-import androidx.work.Data;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -66,6 +62,7 @@ public class CameraActivity extends AppCompatActivity {
     private String type;
     private String uniqueID = null;
     private final String PREF_UNIQUE_ID = "PREF_UNIQUE_ID";
+    private AlertDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,9 +74,17 @@ public class CameraActivity extends AppCompatActivity {
         header_code.setText(code);
         mImageView = findViewById(R.id.image_view);
         TextView button_cancel = findViewById(R.id.button_cancel);
-        button_cancel.setOnClickListener(v -> finish());
+        button_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteImage();
+                dispatchTakePictureIntent();
+            }
+        });
         TextView button_ok = findViewById(R.id.button_ok);
-        button_ok.setOnClickListener(v -> sendPhoto());
+        button_ok.setOnClickListener(v -> sendPhoto(false));
+        TextView button_send_done = findViewById(R.id.button_send_done);
+        button_send_done.setOnClickListener(v -> sendPhoto(true));
         permissionsCheck(this, Arrays.asList(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE));
         if (uniqueID == null) {
             SharedPreferences sharedPrefs = this.getSharedPreferences(
@@ -103,25 +108,6 @@ public class CameraActivity extends AppCompatActivity {
         generateDatabase();
     }
 
-    private void sendWork() {
-        Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .setRequiresBatteryNotLow(true)
-                .build();
-
-        PeriodicWorkRequest uploadWorkRequest =
-                new PeriodicWorkRequest.Builder(UploadWorker.class, PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS,
-                        TimeUnit.MILLISECONDS,
-                        PeriodicWorkRequest.MIN_PERIODIC_FLEX_MILLIS,
-                        TimeUnit.MILLISECONDS)
-                        .setConstraints(constraints)
-                        .addTag(code)
-                        .build();
-        WorkManager
-                .getInstance(this)
-                .enqueueUniquePeriodicWork(getPackageName(),
-                        ExistingPeriodicWorkPolicy.KEEP, uploadWorkRequest);
-    }
 
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -230,7 +216,8 @@ public class CameraActivity extends AppCompatActivity {
         dao = appDatabase.getItemDAO();
     }
 
-    private void sendPhoto() {
+    private void sendPhoto(Boolean isDone) {
+        showLoadingDialog();
         File file = new File(currentPhotoPath);
         MultipartBody.Part[] listFileParts = new MultipartBody.Part[1];
         RequestBody requestImage = RequestBody.create(MediaType.parse("image/*"), file);
@@ -245,9 +232,14 @@ public class CameraActivity extends AppCompatActivity {
                 .subscribe(postResult -> {
                     Log.i("AAAHAU", "Success");
                     Toast.makeText(this, "正常に送信できました", Toast.LENGTH_SHORT).show();
-                    finish();
+                    dismissLoadingDialog();
+                    deleteImage();
+                    if (isDone) {
+                        finish();
+                    } else {
+                        dispatchTakePictureIntent();
+                    }
                 }, throwable -> {
-                    Log.i("AAAHAU", "error");
                     Toast.makeText(this, "送信不可", Toast.LENGTH_SHORT).show();
                     AppDatabase appDatabase = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "mydb")
                             .allowMainThreadQueries()
@@ -255,7 +247,47 @@ public class CameraActivity extends AppCompatActivity {
                     ItemDAO dao = appDatabase.getItemDAO();
                     Item item = new Item(type, code, currentPhotoPath, uniqueID, new Date().getTime());
                     dao.insert(item);
-                    finish();
+                    dismissLoadingDialog();
+                    if (isDone) {
+                        finish();
+                    } else {
+                        dispatchTakePictureIntent();
+                    }
                 });
     }
+
+    private void showLoadingDialog() {
+        if (loadingDialog == null) {
+            loadingDialog = DialogHandler.createLoadingDialog(this);
+            loadingDialog.show();
+        } else {
+            loadingDialog.show();
+        }
+    }
+
+    private void dismissLoadingDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing() == true) {
+            loadingDialog.dismiss();
+        }
+        loadingDialog = null;
+    }
+
+    private void deleteImage() {
+        File fdelete = new File(currentPhotoPath);
+        if (fdelete.exists()) {
+            if (fdelete.delete()) {
+                Log.d("AAAHAU", "file Deleted :" + currentPhotoPath);
+            } else {
+                Log.d("AAAHAU", "file not Deleted :" + currentPhotoPath);
+            }
+        }
+        currentPhotoPath = null;
+    }
+
+    @Override
+    protected void onDestroy() {
+        dismissLoadingDialog();
+        super.onDestroy();
+    }
+
 }

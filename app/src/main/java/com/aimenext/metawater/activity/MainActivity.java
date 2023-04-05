@@ -15,6 +15,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.room.Room;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+
 import com.aimenext.metawater.ParseJson;
 import com.aimenext.metawater.R;
 import com.aimenext.metawater.activity.camera.CameraActivity;
@@ -24,20 +33,13 @@ import com.aimenext.metawater.data.Constants;
 import com.aimenext.metawater.data.local.dao.ItemDAO;
 import com.aimenext.metawater.data.local.db.AppDatabase;
 import com.aimenext.metawater.data.local.entity.Item;
+import com.aimenext.metawater.utils.CountUtils;
 import com.aimenext.metawater.utils.UploadWorker;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.room.Room;
-import androidx.work.Constraints;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -117,11 +119,11 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         ItemDAO dao = appDatabase.getItemDAO();
         List<Item> items = dao.getItems();
-        if (items != null) {
-            imageRemain.setText(String.valueOf(items.size()));
-            codeRemain.setText(String.valueOf(items.size()));
-        }
+        Log.d("AAAHAU", "Main: " + items.size() + "");
+        imageRemain.setText(String.valueOf(items.size()));
+        codeRemain.setText(CountUtils.removeDuplicateItem((ArrayList<Item>) items).size() + "");
     }
+
 
     private void onNetWorkChange(boolean isOn) {
 //        runOnUiThread(new Runnable() {
@@ -269,7 +271,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override protected void onResume() {
+    @Override
+    protected void onResume() {
         super.onResume();
         generateDatabase();
         sendWork();

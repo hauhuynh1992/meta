@@ -6,6 +6,12 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
+
 import com.aimenext.metawater.R;
 import com.aimenext.metawater.RestAPI;
 import com.aimenext.metawater.activity.unsend.adapter.UnSendRVAdapter;
@@ -14,15 +20,12 @@ import com.aimenext.metawater.data.Response;
 import com.aimenext.metawater.data.local.dao.ItemDAO;
 import com.aimenext.metawater.data.local.db.AppDatabase;
 import com.aimenext.metawater.data.local.entity.Item;
+import com.aimenext.metawater.utils.DialogHandler;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -38,6 +41,7 @@ public class UnSendActivity extends AppCompatActivity {
     private ImageButton btnBack;
     private UnSendRVAdapter mAdapter;
     private LinearLayoutManager mLayoutManager;
+    private AlertDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +113,8 @@ public class UnSendActivity extends AppCompatActivity {
         }
     }
 
-    private void sendPhoto(ItemDAO dao, Long id, String path, String code, String device, String type) {
+    synchronized private void sendPhoto(ItemDAO dao, Long id, String path, String code, String device, String type) {
+        showLoadingDialog();
         File file = new File(path);
         MultipartBody.Part[] listFileParts = new MultipartBody.Part[1];
         RequestBody requestImage = RequestBody.create(MediaType.parse("image/*"), file);
@@ -123,6 +128,7 @@ public class UnSendActivity extends AppCompatActivity {
                 .observeOn(Schedulers.computation())
                 .subscribe(postResult -> {
                     Log.d("AAAHAU", "Success: " + id.toString());
+                    dismissLoadingDialog();
                     dao.deleteJob(id);
                     File fdelete = new File(path);
                     if (fdelete.exists()) {
@@ -132,11 +138,47 @@ public class UnSendActivity extends AppCompatActivity {
                             Log.d("AAAHAU", "file not Deleted :" + path);
                         }
                     }
-                    Toast.makeText(this, "正常に送信できました", Toast.LENGTH_SHORT).show();
-                    finish();
+
+                    int size = dao.getItems().size();
+                    if (size == 0) {
+                        this.runOnUiThread(new Runnable() {
+                            public void run() {
+                                Toast.makeText(UnSendActivity.this, "正常に送信できました", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        finish();
+                    }
                 }, throwable -> {
-                    Log.d("AAAHAU", "error");
+                    dismissLoadingDialog();
+                    this.runOnUiThread(new Runnable() {
+                        public void run() {
+                            Toast.makeText(UnSendActivity.this, "送信不可", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    Log.d("AAAHAU", "error: " + throwable.getMessage().toString());
                     finish();
                 });
+    }
+
+    private void showLoadingDialog() {
+        if (loadingDialog == null) {
+            loadingDialog = DialogHandler.createLoadingDialog(this);
+            loadingDialog.show();
+        } else {
+            loadingDialog.show();
+        }
+    }
+
+    private void dismissLoadingDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing() == true) {
+            loadingDialog.dismiss();
+        }
+        loadingDialog = null;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dismissLoadingDialog();
     }
 }

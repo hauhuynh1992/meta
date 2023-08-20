@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <com.google.mlkit>
   <acceleration versions="16.0.0-beta1"/>
-  <barcode-scanning versions="16.0.0,16.0.1,16.0.2,16.0.3,16.1.0,16.1.1,16.1.2,16.2.0,17.0.0,17.0.1,17.0.2,17.0.3,17.1.0"/>
+  <barcode-scanning versions="16.0.0,16.0.1,16.0.2,16.0.3,16.1.0,16.1.1,16.1.2,16.2.0,17.0.0,17.0.1,17.0.2,17.0.3,17.1.0,17.2.0"/>
   <barcode-scanning-common versions="16.0.0,17.0.0"/>
   <camera versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3"/>
-  <common versions="16.0.0,16.0.1,16.1.0,17.0.0,17.1.0,17.1.1,17.2.0,17.3.0,17.4.0,17.5.0,18.0.0,18.1.0,18.2.0,18.3.0,18.4.0,18.5.0,18.6.0,18.7.0"/>
+  <common versions="16.0.0,16.0.1,16.1.0,17.0.0,17.1.0,17.1.1,17.2.0,17.3.0,17.4.0,17.5.0,18.0.0,18.1.0,18.2.0,18.3.0,18.4.0,18.5.0,18.6.0,18.7.0,18.8.0,18.9.0"/>
   <digital-ink-recognition versions="16.0.0,16.1.0,16.2.0,17.0.0,17.0.1,18.0.0,18.1.0"/>
   <entity-extraction versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4"/>
   <face-detection versions="16.0.0,16.0.1,16.0.2,16.0.3,16.0.4,16.0.5,16.0.6,16.0.7,16.1.0,16.1.1,16.1.2,16.1.3,16.1.4,16.1.5"/>
@@ -29,12 +29,12 @@
   <segmentation-selfie versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4"/>
   <smart-reply versions="16.0.0,16.1.0,16.1.1,16.2.0,17.0.0,17.0.1,17.0.2"/>
   <smart-reply-common versions="16.0.0,16.1.0"/>
-  <text-recognition versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6"/>
-  <text-recognition-bundled-common versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6"/>
-  <text-recognition-chinese versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6"/>
-  <text-recognition-devanagari versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6"/>
-  <text-recognition-japanese versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6"/>
-  <text-recognition-korean versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6"/>
+  <text-recognition versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6,16.0.0"/>
+  <text-recognition-bundled-common versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6,16.0.0"/>
+  <text-recognition-chinese versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6,16.0.0"/>
+  <text-recognition-devanagari versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6,16.0.0"/>
+  <text-recognition-japanese versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6,16.0.0"/>
+  <text-recognition-korean versions="16.0.0-beta1,16.0.0-beta2,16.0.0-beta3,16.0.0-beta4,16.0.0-beta5,16.0.0-beta6,16.0.0"/>
   <translate versions="16.0.0,16.1.0,16.1.1,16.1.2,17.0.0,17.0.1"/>
   <vision-common versions="16.0.0,16.0.1,16.1.0,16.2.0,16.3.0,16.4.0,16.5.0,16.6.0,16.7.0,17.0.0,17.1.0,17.2.0,17.2.1,17.3.0"/>
   <vision-interfaces versions="16.0.0,16.1.0,16.2.0"/>

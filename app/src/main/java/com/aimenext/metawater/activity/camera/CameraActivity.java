@@ -32,6 +32,7 @@ import com.aimenext.metawater.data.local.dao.ItemDAO;
 import com.aimenext.metawater.data.local.db.AppDatabase;
 import com.aimenext.metawater.data.local.entity.Item;
 import com.aimenext.metawater.utils.DialogHandler;
+import com.aimenext.metawater.utils.NetworkUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.common.util.Hex;
 
@@ -171,7 +172,9 @@ public class CameraActivity extends AppCompatActivity {
         }
 
         if (!missingPermissions.isEmpty()) {
-            this.requestPermissions(missingPermissions.toArray(new String[missingPermissions.size()]), Constants.REQUEST_CAMERA_PERMISSION);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                this.requestPermissions(missingPermissions.toArray(new String[missingPermissions.size()]), Constants.REQUEST_CAMERA_PERMISSION);
+            }
         } else {
             dispatchTakePictureIntent();
         }
@@ -217,43 +220,53 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void sendPhoto(Boolean isDone) {
-        showLoadingDialog();
-        File file = new File(currentPhotoPath);
-        MultipartBody.Part[] listFileParts = new MultipartBody.Part[1];
-        RequestBody requestImage = RequestBody.create(MediaType.parse("image/*"), file);
-        listFileParts[0] = MultipartBody.Part.createFormData("file", file.getName(), requestImage);
+        if (NetworkUtils.isNetworkIsConnected(this)) {
+            showLoadingDialog();
+            File file = new File(currentPhotoPath);
+            MultipartBody.Part[] listFileParts = new MultipartBody.Part[1];
+            RequestBody requestImage = RequestBody.create(MediaType.parse("image/*"), file);
+            listFileParts[0] = MultipartBody.Part.createFormData("file", file.getName(), requestImage);
 
-        RequestBody requestCanCode = RequestBody.create(MediaType.parse("multipart/form-data"), code);
-        RequestBody requestType = RequestBody.create(MediaType.parse("multipart/form-data"), type);
-        RequestBody requestDevice = RequestBody.create(MediaType.parse("multipart/form-data"), uniqueID);
-        Observable<Response> cryptoObservable = RestAPI.getRetrofit().addImage(requestCanCode, requestType, requestDevice, listFileParts);
-        cryptoObservable.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(postResult -> {
-                    Log.i("AAAHAU", "Success");
-                    Toast.makeText(this, "正常に送信できました", Toast.LENGTH_SHORT).show();
-                    dismissLoadingDialog();
-                    deleteImage();
-                    if (isDone) {
-                        finish();
-                    } else {
-                        dispatchTakePictureIntent();
-                    }
-                }, throwable -> {
-                    Toast.makeText(this, "送信不可", Toast.LENGTH_SHORT).show();
-                    AppDatabase appDatabase = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "mydb")
-                            .allowMainThreadQueries()
-                            .build();
-                    ItemDAO dao = appDatabase.getItemDAO();
-                    Item item = new Item(type, code, currentPhotoPath, uniqueID, new Date().getTime());
-                    dao.insert(item);
-                    dismissLoadingDialog();
-                    if (isDone) {
-                        finish();
-                    } else {
-                        dispatchTakePictureIntent();
-                    }
-                });
+            RequestBody requestCanCode = RequestBody.create(MediaType.parse("multipart/form-data"), code);
+            RequestBody requestType = RequestBody.create(MediaType.parse("multipart/form-data"), type);
+            String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
+            RequestBody requestPictureDate = RequestBody.create(MediaType.parse("multipart/form-data"), timeStamp);
+            RequestBody requestDevice = RequestBody.create(MediaType.parse("multipart/form-data"), uniqueID);
+            Observable<Response> cryptoObservable = RestAPI.getRetrofit().addImage(requestCanCode, requestType, requestDevice,requestPictureDate, listFileParts);
+            cryptoObservable.subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(postResult -> {
+                        Log.i("AAAHAU", "Success");
+                        Toast.makeText(this, "正常に送信できました", Toast.LENGTH_SHORT).show();
+                        dismissLoadingDialog();
+                        deleteImage();
+                        if (isDone) {
+                            finish();
+                        } else {
+                            dispatchTakePictureIntent();
+                        }
+                    }, throwable -> {
+                        Toast.makeText(this, "送信不可", Toast.LENGTH_SHORT).show();
+                        saveDatabase(isDone);
+                    });
+        } else {
+            saveDatabase(isDone);
+        }
+    }
+
+    private void saveDatabase(boolean isDone) {
+        AppDatabase appDatabase = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "mydb")
+                .allowMainThreadQueries()
+                .build();
+        ItemDAO dao = appDatabase.getItemDAO();
+        Item item = new Item(type, code, currentPhotoPath, uniqueID, new Date().getTime());
+        dao.insert(item);
+        dismissLoadingDialog();
+        if (isDone) {
+            finish();
+        } else {
+            dispatchTakePictureIntent();
+        }
     }
 
     private void showLoadingDialog() {

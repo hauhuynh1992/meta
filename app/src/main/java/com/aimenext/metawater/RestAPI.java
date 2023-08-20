@@ -51,6 +51,7 @@ public class RestAPI {
         Observable<Response> addImage(@Part("code") RequestBody canCode,
                                       @Part("type") RequestBody type,
                                       @Part("upload_device") RequestBody device,
+                                      @Part("picture_date") RequestBody date,
                                       @Part MultipartBody.Part[] listFile
         );
     }

@@ -23,7 +23,9 @@ import com.aimenext.metawater.data.local.entity.Item;
 import com.aimenext.metawater.utils.DialogHandler;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -108,22 +110,23 @@ public class UnSendActivity extends AppCompatActivity {
                 String canCode = items.get(i).getCanCode();
                 String type = items.get(i).getType();
                 String uniqueId = items.get(i).getUnique();
-                sendPhoto(dao, id, imageUriInput, canCode, uniqueId, type);
+                String dateString = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(items.get(i).getDate()));
+                sendPhoto(dao, id, imageUriInput, canCode, uniqueId, type, dateString);
             }
         }
     }
 
-    synchronized private void sendPhoto(ItemDAO dao, Long id, String path, String code, String device, String type) {
+    synchronized private void sendPhoto(ItemDAO dao, Long id, String path, String code, String device, String type, String picture_date) {
         showLoadingDialog();
         File file = new File(path);
         MultipartBody.Part[] listFileParts = new MultipartBody.Part[1];
         RequestBody requestImage = RequestBody.create(MediaType.parse("image/*"), file);
         listFileParts[0] = MultipartBody.Part.createFormData("file", file.getName(), requestImage);
-
+        RequestBody requestPictureDate = RequestBody.create(MediaType.parse("multipart/form-data"), picture_date);
         RequestBody requestCanCode = RequestBody.create(MediaType.parse("multipart/form-data"), code);
         RequestBody requestType = RequestBody.create(MediaType.parse("multipart/form-data"), type);
         RequestBody requestDevice = RequestBody.create(MediaType.parse("multipart/form-data"), device);
-        Observable<Response> cryptoObservable = RestAPI.getRetrofit().addImage(requestCanCode, requestType, requestDevice, listFileParts);
+        Observable<Response> cryptoObservable = RestAPI.getRetrofit().addImage(requestCanCode, requestType, requestDevice, requestPictureDate, listFileParts);
         cryptoObservable.subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.computation())
                 .subscribe(postResult -> {

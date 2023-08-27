@@ -1,5 +1,6 @@
 package com.aimenext.metawater.activity.unsend;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageButton;
@@ -21,12 +22,14 @@ import com.aimenext.metawater.data.local.dao.ItemDAO;
 import com.aimenext.metawater.data.local.db.AppDatabase;
 import com.aimenext.metawater.data.local.entity.Item;
 import com.aimenext.metawater.utils.DialogHandler;
+import com.aimenext.metawater.utils.ImageUploader;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -67,7 +70,6 @@ public class UnSendActivity extends AppCompatActivity {
 
         btnBack.setImageResource(R.drawable.ic_baseline_arrow_back_24);
 
-
         mAdapter = new UnSendRVAdapter();
         mLayoutManager = new LinearLayoutManager(this);
         rvList.setLayoutManager(mLayoutManager);
@@ -101,22 +103,47 @@ public class UnSendActivity extends AppCompatActivity {
 
     }
 
+    @SuppressLint("CheckResult")
     private void sendData() {
+        showLoadingDialog();
         List<Job> items = mAdapter.getAll();
         if (items != null) {
+            ImageUploader imageUploader = new ImageUploader();
+            List<String> images = new ArrayList<>();
             for (int i = 0; i < items.size(); i++) {
-                Long id = items.get(i).getId();
-                String imageUriInput = items.get(i).getImageUri();
-                String canCode = items.get(i).getCanCode();
-                String type = items.get(i).getType();
-                String uniqueId = items.get(i).getUnique();
-                String dateString = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(items.get(i).getDate()));
-                sendPhoto(dao, id, imageUriInput, canCode, uniqueId, type, dateString);
+                images.add(items.get(i).getImageUri());
             }
+
+            String canCode = items.get(0).getCanCode();
+            String type = items.get(0).getType();
+            String uniqueId = items.get(0).getUnique();
+            String dateString = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(items.get(0).getDate()));
+            int size = items.size();
+            AtomicInteger index = new AtomicInteger();
+            imageUploader.uploadImages(images, canCode, uniqueId, type, dateString).subscribe(postResult -> {
+                dismissLoadingDialog();
+                Log.d("AAAHAU", "Success");
+                index.getAndIncrement();
+                if (index.get() == size) {
+                    dao.deleteAll();
+                    this.runOnUiThread(new Runnable() {
+                        public void run() {
+                            Toast.makeText(UnSendActivity.this, "正常に送信できました", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    finish();
+                }
+
+            }, throwable -> {
+                dismissLoadingDialog();
+                Log.d("AAAHAU", "error: " + throwable.getMessage().toString());
+                finish();
+            });
         }
     }
 
     synchronized private void sendPhoto(ItemDAO dao, Long id, String path, String code, String device, String type, String picture_date) {
+        Log.i("AAAHAU", "sendPhoto: " + id.toString());
         showLoadingDialog();
         File file = new File(path);
         MultipartBody.Part[] listFileParts = new MultipartBody.Part[1];

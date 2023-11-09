@@ -7,12 +7,6 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
-
 import com.aimenext.metawater.R;
 import com.aimenext.metawater.RestAPI;
 import com.aimenext.metawater.activity.unsend.adapter.UnSendRVAdapter;
@@ -25,12 +19,15 @@ import com.aimenext.metawater.utils.DialogHandler;
 import com.aimenext.metawater.utils.ImageUploader;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -109,25 +106,19 @@ public class UnSendActivity extends AppCompatActivity {
         List<Job> items = mAdapter.getAll();
         if (items != null) {
             ImageUploader imageUploader = new ImageUploader();
-            List<String> images = new ArrayList<>();
-            for (int i = 0; i < items.size(); i++) {
-                images.add(items.get(i).getImageUri());
-            }
-
-            String canCode = items.get(0).getCanCode();
-            String type = items.get(0).getType();
-            String uniqueId = items.get(0).getUnique();
-            String dateString = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date(items.get(0).getDate()));
             int size = items.size();
             AtomicInteger index = new AtomicInteger();
-            imageUploader.uploadImages(images, canCode, uniqueId, type, dateString).subscribe(postResult -> {
-                dismissLoadingDialog();
-                Log.d("AAAHAU", "Success");
+            imageUploader.uploadImages(items).subscribe(postResult -> {
+                Log.d("AAAHAU", "Success: " + postResult.getJobId());
+                Long id = postResult.getJobId();
+                if (id != null) {
+                    dao.deleteJob(postResult.getJobId());
+                }
                 index.getAndIncrement();
                 if (index.get() == size) {
-                    dao.deleteAll();
                     this.runOnUiThread(new Runnable() {
                         public void run() {
+                            dismissLoadingDialog();
                             Toast.makeText(UnSendActivity.this, "正常に送信できました", Toast.LENGTH_SHORT).show();
                         }
                     });

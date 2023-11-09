@@ -29,9 +29,9 @@ public class RestAPI {
 
             client = new OkHttpClient.Builder()
                     .addInterceptor(interceptor)
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
-                    .writeTimeout(30, TimeUnit.SECONDS)
+                    .connectTimeout(300, TimeUnit.SECONDS)
+                    .readTimeout(300, TimeUnit.SECONDS)
+                    .writeTimeout(300, TimeUnit.SECONDS)
                     .build();
 
             retrofitHome = new Retrofit.Builder()
